@@ -1,20 +1,4 @@
 <ruby>
-def init_db(username, password, workspace)
-	if username.empty? or password.empty?
-		raise ArgumentError, "You must have a credential to connect to your database"
-	end
-
-	print_status("Connecting to database: #{workspace}")
-	run_single("db_connect #{username}:#{password}@localhost:5432/#{workspace}")
-end
-def is_db_connected?
-	begin
-		framework.db.hosts
-		return true
-	rescue ::ActiveRecord::ConnectionNotEstablished
-		return false
-	end
-end
 def upgrade(session)
 	run_single("sessions -u #{session}")
 end
@@ -110,9 +94,23 @@ def gather(session)
 	rescue ::Execption => e
 		raise e
 end
+framework.sessions.each_key do |session| 
+def check(session)
+	if session == 0
+		return false
+	else 
+		return true	
+	end
+end
+def checkpass(session)
+	if check(session) =~ true
+		print_error("no sessions detected")
+	else
+		upgrade("#{session}")
+                gather("#{session}")
 
-framework.sessions.each_key do |session|
-	upgrade("#{session}")
-	gather("#{session}")
+	end
+end
+checkpass("#{session}")
 end
 </ruby>
